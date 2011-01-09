@@ -13,3 +13,7 @@ except ImportError:
         'lib'
     ))
     import pydvice
+
+
+if __name__ == '__main__':
+    unittest.main()
