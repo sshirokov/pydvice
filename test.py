@@ -62,7 +62,13 @@ class BeforeTests(Boilerplate, unittest.TestCase):
                          "Name of function mustn't change when advised.")
         self.assertTrue(self.nothing.__doc__.startswith(meta['doc']),
                         "The docstring must be the same for at least the beginning.")
-        self.assertTrue(trace['ran'], "The advice should have ran")
+        self.assertTrue(callable(self.nothing),
+                        "The function needs to remain callable")
+
+        self.nothing()
+
+        self.assertTrue(trace['ran'],
+                        "The advice should have ran")
 
 
 if __name__ == '__main__':
