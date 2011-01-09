@@ -1,2 +1,5 @@
 .pyc
 *~
+
+#I usually use a virtualenv named 've' in the root of the project as I develop
+ve/*
