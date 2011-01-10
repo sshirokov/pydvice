@@ -45,6 +45,11 @@ class pydvice(object):
           for fun, advices in advised.items()]
          for advised in cls.advised.values()]
 
+    @classmethod
+    def rebind_all(cls):
+        for atype in cls.advised.keys():
+            self.getattr(cls, atype).rebind_all()
+
 
 class BaseAdvice(object):
     active = None
@@ -79,7 +84,10 @@ class BaseAdvice(object):
 
     @classmethod
     def rebind_all(cls):
-        pass
+        if not hasattr(cls, 'pydvice'): return
+        for fun, advices in cls.pydvice.advised[cls.position]:
+            [a.unbind() for a in advices]
+            [a.bind() for a in advices]
 
     def bind(self):
         if hasattr(self,  'pydvice'):
