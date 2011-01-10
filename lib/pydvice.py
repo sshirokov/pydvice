@@ -64,10 +64,7 @@ class BaseAdvice(object):
         if self.options['activate']: self.activate()
 
     def __call__(self, advice):
-        if hasattr(self,  'pydvice'):
-            pydvice._register(self.position, self.fun_ref, self)
         advice.advice = self
-
         self.advice = advice
         return advice
 
@@ -80,7 +77,14 @@ class BaseAdvice(object):
         if self.active: return self.act(*a, **k)
         else: return self.fun(*a, **k)
 
+    @classmethod
+    def rebind_all(cls):
+        pass
+
     def bind(self):
+        if hasattr(self,  'pydvice'):
+            pydvice._register(self.position, self.fun_ref, self)
+
         self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
                               shadow=self.shadow_name,
                               bound=False,
