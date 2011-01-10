@@ -1,6 +1,9 @@
 *.pyc
 *~
 
+#Scratch
+scratch.py
+
 #setuptools noise
 build/*
 dist/*
