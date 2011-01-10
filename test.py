@@ -64,6 +64,22 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+class UsecaseTests(Boilerplate, unittest.TestCase):
+    def test_can_advise_instance_methods(self):
+        trace = {'ran': False}
+        class TestClass(object):
+            def meth(self, a):
+                return a + 1
+
+        @pydvice.before(TestClass.meth)
+        def meth_advice(*args, **kwargs):
+            trace['ran'] = True
+
+        self.assertEqual(TestClass().meth(1), 2,
+                         "The method should still function when advised.")
+        self.assertTrue(trace['ran'],
+                        "The advice should have ran when attached to a method.")
+
 class AroundTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
         self.assertTrue(pydvice.around,
