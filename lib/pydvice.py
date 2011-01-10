@@ -2,6 +2,17 @@ import uuid
 import types
 import functools
 
+class with_attrs(object):
+    '''
+    Decorator to set function attributes
+    '''
+    def __init__(self, **kwargs):
+        self.options = kwargs;
+
+    def __call__(self, f):
+        [setattr(f, opt, val) for (opt, val) in self.options.items()]
+        return f
+
 class pydvice(object):
     advised = {}
 
@@ -124,5 +135,19 @@ class After(BaseAdvice):
     def act(self, *args, **kwargs):
         r = self.fun(*args, **kwargs)
         ar = self.advice(r, args=args, kwargs=kwargs)
-
         return r if ar is None else ar
+
+@pydvice.defines('around')
+class Around(BaseAdvice):
+    '''Definition of around advice'''
+    def act(self, *args, **kwargs):
+        @with_attrs(value=None)
+        def result(new_result=None):
+            if new_result: result.value = new_result
+            return result.value
+        def doit(): result(self.fun(*args, **kwargs))
+
+        ar = self.advice(doit, result, args=args, kwargs=kwargs)
+
+        return result() if ar is None else ar
+
