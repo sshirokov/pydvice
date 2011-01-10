@@ -1,6 +1,28 @@
 import uuid
 import types
 
+class pydvice(object):
+    advised = {}
+
+    @classmethod
+    def defines(cls, name):
+        def do_define(ad_cls):
+            setattr(cls, name, ad_cls)
+            cls.advised[name] = {}
+            return ad_cls
+        return do_define
+
+    @classmethod
+    def _register(cls, position, fun, advice):
+        cls.advised[position].setdefault(fun, []).append(advice)
+        return cls.advised[position][fun]
+
+    @classmethod
+    def deactivate_all(cls):
+        #TODO: Deactivate, don't just forget about
+        [cls.advised.update({key: {}}) for key in cls.advised.keys()]
+
+
 class BaseAdvice(object):
     def __init__(self, fun, **options):
         self.options = dict({'activate': True},
@@ -49,6 +71,7 @@ class BaseAdvice(object):
         self.fun_ref.func_globals.update(**{self.shadow_name: self})
 
 
+@pydvice.defines('before')
 class Before(BaseAdvice):
     '''Definition of before advice'''
 
@@ -64,19 +87,3 @@ class Before(BaseAdvice):
         self.advice = advice
         return self.run
 
-class pydvice(object):
-    advised = {'before': {},
-               'around': {},
-               'after': {}}
-
-    before = Before
-
-    @classmethod
-    def _register(cls, position, fun, advice):
-        cls.advised[position].setdefault(fun, []).append(advice)
-        return cls.advised[position][fun]
-
-    @classmethod
-    def deactivate_all(cls):
-        #TODO: Deactivate, don't just forget about
-        [cls.advised.update({key: {}}) for key in cls.advised.keys()]
