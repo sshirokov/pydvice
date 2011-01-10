@@ -83,6 +83,21 @@ class AfterTests(Boilerplate, unittest.TestCase):
         self.assertTrue(self is trace['return'],
                         "The trace should recieve the return value of the function")
 
+    def test_new_return(self):
+        trace = {'return': None, 'args': None, 'kwargs': None}
+
+        @pydvice.after(self.identity)
+        def set_trace(ret, args, kwargs):
+            trace.update(**{'return': ret,
+                            'args': args,
+                            'kwargs': kwargs})
+            return self.identity
+
+        self.assertTrue(self.identity is self.identity(self),
+                        "Identity should be returning in line with the new advice")
+        self.assertTrue(self is trace['return'],
+                        "The trace should recieve the return value of the original function")
+
 
 class BeforeTests(Boilerplate, unittest.TestCase):
     def test_advise_activation(self):
