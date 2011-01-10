@@ -49,6 +49,19 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+    def test_return_remains(self):
+        ob = {'secret': 'squirrel'}
+        identities = []
+
+        @pydvice.before(self.identity)
+        def store_identity(o):
+            identities.append(o)
+
+        ob2 = self.identity(ob)
+        self.assertTrue(ob is ob2, "Identity function fails after being advised")
+        self.assertTrue(ob in identities, "The advice did not perform to spec")
+        self.assertEqual(len(identities), 1, "The advice ran too many times")
+
     def test_before_simple(self):
         trace = {'ran': False}
         meta = {'doc': self.nothing.__doc__,
