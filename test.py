@@ -49,6 +49,17 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+    def test_advise_lambda(self):
+        argses = []
+        fun = lambda x, y: x+y
+
+        pydvice.before(fun)(
+            lambda *a, **k: argses.append((a, k)))
+
+        self.assertEqual(fun(1, 1), 2, "Lamda still functions")
+        self.assertEqual(len(argses), 1, "Lamda advice did not run")
+        self.assertEqual(argses[0], ((1, 1), {}), "The advice collected garbage")
+
     def test_return_remains(self):
         ob = {'secret': 'squirrel'}
         identities = []
