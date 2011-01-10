@@ -24,7 +24,7 @@ class pydvice(object):
         [[[a.unbind() for a in advices]
           for fun, advices in advised.items()]
          for advised in cls.advised.values()]
-        advised = {}
+        cls.advised = dict([(name, {}) for name in cls.advised.keys()])
 
     @classmethod
     def deactivate_all(cls):
