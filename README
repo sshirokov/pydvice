@@ -1,0 +1,21 @@
+Pydvice: An attempt at bringing (defadvice ...) from Elisp to Python
+
+In Elisp (defadvice ...) allows one add code 'before', 'after' and 'around' a given function
+to modify, augment, or merely hook into behavior, modify the function arguments and returns  and more.
+Each piece of advice can be independently activated and deactivated.  And the sum contribution
+of this functionality leads to a much increased ease in code reuse and massaging to a specific
+application of more general functionality.
+
+This is my attempt to bring these features to Python by any means necessary. 
+
+I advise (get it?) any intrigued party to glance at the Elisp documentation for the advice system:
+Elisp advice: http://www.gnu.org/s/emacs/manual/html_node/elisp/Advising-Functions.html
+
+Project Goals:
+- Provide 'before', 'after', and 'around' advice features to any function.
+- Allow any given piece of advice to be activated or deactivated 
+- Allow consumers of advised functions to remain ignorant of the application of advice
+- Provide robust argument mangling (get/set/reorder) in before and around advice
+- Provide robust return value handling in around and after advice
+- Try not to suck to badly at any of the above
+- Have a good time
