@@ -55,6 +55,7 @@ class BaseAdvice(object):
     active = None
 
     def __init__(self, fun, **options):
+        fun = fun if isinstance(fun, types.FunctionType) else fun.im_func
         self.options = dict({'activate': True},
                             **options)
         self.fun_ref = fun

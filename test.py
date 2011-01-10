@@ -71,6 +71,14 @@ class UsecaseTests(Boilerplate, unittest.TestCase):
             def meth(self, a):
                 return a + 1
 
+            @classmethod
+            def classmeth(cls, b):
+                return b + 2
+
+            @staticmethod
+            def staticmeth(c):
+                return c + 3
+
         @pydvice.before(TestClass.meth)
         def meth_advice(*args, **kwargs):
             trace['ran'] = True
