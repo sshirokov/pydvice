@@ -56,6 +56,30 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+    def test_advise_activation(self):
+        trace = {'ran': False}
+
+        @pydvice.before(self.identity, activate=False)
+        def store_trace(o):
+            trace['ran'] = True
+
+        self.assertFalse(store_trace.advice.active,
+                         "The store_trace advice should be disabled")
+        self.assertTrue(self.identity(self) is self,
+                        "Identity should continue to function")
+        self.assertFalse(trace['ran'],
+                         "The advice should not have run since it's disabled.")
+
+        store_trace.advice.activate()
+
+        self.assertTrue(store_trace.advice.active,
+                         "The store_trace advice should be enabled now")
+        self.assertTrue(self.identity(self) is self,
+                        "Identity should continue to function")
+        self.assertTrue(trace['ran'],
+                         "The advice should have run since it's now enabled.")
+
+
     def test_advise_closure(self):
         trace = {'ran': False}
 
