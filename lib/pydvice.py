@@ -20,7 +20,7 @@ class before(object):
                                       fun.func_defaults,
                                       fun.func_closure)
 
-        self.shadow_name = 'advice_shadow_%s' % uuid.uuid4().hex
+        self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
 
         caller = eval(compile('lambda *a, **k: %s.run(*a, **k)' % self.shadow_name,
                               '<pydvice.before>', 'eval'))
