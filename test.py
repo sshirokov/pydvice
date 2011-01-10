@@ -21,6 +21,10 @@ class Boilerplate(object):
 
     def setUp(self):
         @self.attach
+        def closure():
+            return self
+
+        @self.attach
         def identity(o):
             '''The identity function'''
             return o
@@ -49,8 +53,16 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
-    def test_advice_stored(self):
-        pass
+    def test_advise_closure(self):
+        trace = {'ran': False}
+
+        @pydvice.before(self.closure)
+        def prove_it():
+            trace['ran'] = True
+
+        this = self.closure()
+        self.assertTrue(this is self, "Closure is malfunctioning.")
+        self.assertTrue(trace['ran'], "The advice did not run")
 
     def test_multiple_advice(self):
         trace = {'first': False,
