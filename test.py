@@ -21,11 +21,19 @@ class Boilerplate(object):
 
     def setUp(self):
         MAGIC = 'is everywhere'
+        MORE_MAGIC = 'is impossible'
 
         @self.attach
         def closure():
             return MAGIC
         closure.MAGIC = MAGIC
+
+        @self.attach
+        def closure2():
+            return MAGIC, MORE_MAGIC
+        closure2.MAGIC = MAGIC
+        closure2.MORE_MAGIC = MORE_MAGIC
+
 
         @self.attach
         def identity(o):
@@ -78,7 +86,18 @@ class BeforeTests(Boilerplate, unittest.TestCase):
                         "Identity should continue to function")
         self.assertTrue(trace['ran'],
                          "The advice should have run since it's now enabled.")
+        
+    def test_advise_multivar_closure(self):
+        trace = {'ran': False}
 
+        @pydvice.before(self.closure2)
+        def prove_it_again():
+            trace['ran'] = True
+
+        this, that = self.closure2()
+        self.assertEqual((this, that), (self.closure2.MAGIC, self.closure2.MORE_MAGIC),
+                         "Closure is malfunctioning.")
+        self.assertTrue(trace['ran'], "The advice did not run")
 
     def test_advise_closure(self):
         trace = {'ran': False}
