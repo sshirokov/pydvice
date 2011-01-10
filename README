@@ -82,5 +82,21 @@ Hello there world!
 >>> there()
 there
 
+# Write a peice of after advice that changes (or adds) the return value
+>>> @pydvice.after(there)
+... def return_something(ret, args, kwargs):
+...   return "World greeted"
+... 
+
+# Note that our old function now returns a value
+>>> there()
+Hello there world!
+'World greeted'
+
+# Seriously, it does
+>>> there() == 'World greeted'
+Hello there world!
+True
+
 # Leave the interpreter excited to try this out for real
 >>> exit()
