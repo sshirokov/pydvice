@@ -20,9 +20,9 @@ class before(object):
                                       fun.func_defaults,
                                       fun.func_closure)
 
-        shadow_name = 'advice_shadow_%s' % uuid.uuid4().hex
+        self.shadow_name = 'advice_shadow_%s' % uuid.uuid4().hex
 
-        caller = eval(compile('lambda *a, **k: %s.run(*a, **k)' % shadow_name,
+        caller = eval(compile('lambda *a, **k: %s.run(*a, **k)' % self.shadow_name,
                               '<pydvice.before>', 'eval'))
 
         fun.func_code = types.FunctionType(caller.func_code,
@@ -30,7 +30,7 @@ class before(object):
                                            fun.__name__,
                                            fun.func_defaults,
                                            fun.func_closure).func_code
-        fun.func_globals.update(**{shadow_name: self})
+        fun.func_globals.update(**{self.shadow_name: self})
 
 
     def run(self, *args, **kwargs):
