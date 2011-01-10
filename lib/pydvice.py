@@ -38,7 +38,7 @@ class Before(object):
 
     def __call__(self, advice):
         self.advice = advice
-        pydvice.advised['before'].setdefault(self.fun_ref, []).append(advice)
+        pydvice.advised['before'].setdefault(self.fun_ref, []).append(self)
         return self.run
 
 class pydvice(object):
