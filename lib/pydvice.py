@@ -1,3 +1,4 @@
+import uuid
 import copy
 import types
 import functools
@@ -13,31 +14,29 @@ class before(object):
     '''Definition of before advice'''
     def __init__(self, fun, **options):
         options = dict({}, **options)
-        self.fun = copy.copy(fun)
+        self.fun = types.FunctionType(fun.func_code,
+                                      fun.func_globals,
+                                      fun.__name__,
+                                      fun.func_defaults,
+                                      fun.func_closure)
 
-        lambda self, meth, *a, **k: functools.partial(meth, self)(*a, **k)
+        shadow_name = 'advice_shadow_%s' % uuid.uuid4().hex
 
-        #This is doomed to fail.
-        call = make_consuming_chain(lambda self: functools.partial(self.__class__.run, self),
-                                    lambda part: {'loader': (lambda *a, **k: a[0](*a[1:], **k)),
-                                                  'partial': part,
-                                                  'wrap': lambda self: lambda *a, **k: self.loader(*([self.partial.func] + a),
-                                                                                                    **k)},
-                                    lambda info: lambda *a, **k: info['wrap'](info)
+        caller = eval(compile('lambda *a, **k: %s.run(*a, **k)' % shadow_name,
+                              '<pydvice.before>', 'eval'))
 
-                                    #((lambda l, p, *a, **k: l(*([p.func] + a), **k)))
-        )(self)
-
-        fun.func_code = types.FunctionType(call.func_code,
+        fun.func_code = types.FunctionType(caller.func_code,
                                            fun.func_globals,
                                            fun.__name__,
                                            fun.func_defaults,
-                                           call.func_closure or ()).func_code
+                                           fun.func_closure).func_code
+        fun.func_globals.update(**{shadow_name: self})
 
 
     def run(self, *args, **kwargs):
         print "Should run before advice:", self.advice
         print "Then call:", self.fun
+        self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
 
     def __call__(self, advice):
