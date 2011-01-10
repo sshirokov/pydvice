@@ -128,6 +128,11 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertTrue(trace['ran'],
                         "The advice should have ran")
 
+        self.assertTrue(store_trace.advice,
+                        "The advice function should have a reference to the advice object")
+        self.assertTrue(isinstance(store_trace.advice, pydvice.before),
+                        "The advice object should be an instance of the type of advice that created it")
+
 
 if __name__ == '__main__':
     unittest.main()

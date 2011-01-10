@@ -48,9 +48,10 @@ class BaseAdvice(object):
 
     def __call__(self, advice):
         pydvice._register(self.position, self.fun_ref, self)
+        advice.advice = self
 
         self.advice = advice
-        return self.run
+        return advice
 
 
     @property
