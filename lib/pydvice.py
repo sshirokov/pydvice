@@ -22,6 +22,7 @@ class pydvice(object):
 
         setattr(cls, name, advice)
         setattr(advice, 'position', name)
+        setattr(advice, 'pydvice', cls)
         cls.advised[name] = {}
         return advice
 
