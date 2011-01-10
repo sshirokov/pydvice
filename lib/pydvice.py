@@ -9,11 +9,11 @@ def make_consuming_chain(*functions, **kwargs):
     '''
     return reduce(lambda acc, f: lambda *args, **kwargs: f(acc(*args, **kwargs)), functions)
 
-
 class before(object):
     '''Definition of before advice'''
     def __init__(self, fun, **options):
         options = dict({}, **options)
+        self.fun_ref = fun
         self.fun = types.FunctionType(fun.func_code,
                                       fun.func_globals,
                                       fun.__name__,
@@ -32,7 +32,6 @@ class before(object):
                                            fun.func_closure).func_code
         fun.func_globals.update(**{self.shadow_name: self})
 
-
     def run(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
@@ -40,3 +39,8 @@ class before(object):
     def __call__(self, advice):
         self.advice = advice
         return self.run
+
+class pydvice(object):
+    before = before
+
+

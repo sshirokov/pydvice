@@ -6,13 +6,13 @@ import unittest
 # failing try looking in ./lib
 # next to this file
 try:
-    import pydvice
+    from pydvice import pydvice
 except ImportError:
     sys.path.append(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'lib'
     ))
-    import pydvice
+    from pydvice import pydvice
 
 class Boilerplate(object):
     def attach(self, fn):
@@ -48,6 +48,9 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertTrue(True, "True must be true")
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
+
+    def test_advice_stored(self):
+        pass
 
     def test_multiple_advice(self):
         trace = {'first': False,
