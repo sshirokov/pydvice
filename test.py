@@ -93,6 +93,31 @@ class UsecaseTests(Boilerplate, unittest.TestCase):
         self.assertTrue(trace['ran'],
                         "The advice should have ran when attached to a method.")
 
+    def test_can_advise_classmethods(self):
+        trace = {'ran': False}
+
+        @pydvice.before(self.TestClass.classmeth)
+        def meth_advice(*args, **kwargs):
+            trace['ran'] = True
+
+        self.assertEqual(self.TestClass().classmeth(1), 3,
+                         "The classmethod should still function when advised.")
+        self.assertTrue(trace['ran'],
+                        "The advice should have ran when attached to a classmethod.")
+
+    def test_can_advise_staticmethods(self):
+        trace = {'ran': False}
+
+        @pydvice.before(self.TestClass.staticmeth)
+        def meth_advice(*args, **kwargs):
+            trace['ran'] = True
+
+        self.assertEqual(self.TestClass().staticmeth(1), 4,
+                         "The staticmethod should still function when advised.")
+        self.assertTrue(trace['ran'],
+                        "The advice should have ran when attached to a staticmethod.")
+
+
 class AroundTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
         self.assertTrue(pydvice.around,
