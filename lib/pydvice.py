@@ -34,12 +34,9 @@ class before(object):
 
 
     def run(self, *args, **kwargs):
-        print "Should run before advice:", self.advice
-        print "Then call:", self.fun
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
 
     def __call__(self, advice):
-        print "Registering advice %s => S(%s)" % (advice, self)
         self.advice = advice
         return self.run

@@ -36,7 +36,7 @@ class Boilerplate(object):
             return a + b
 
         @self.attach
-        def nothing(): '''I do nothing'''; print "I do nothing"
+        def nothing(): '''I do nothing'''; 
 
 
     def tearDown(self):
@@ -56,9 +56,7 @@ class BeforeTests(Boilerplate, unittest.TestCase):
 
         @pydvice.before(self.nothing)
         def store_trace():
-            print "Advice running"
             trace['ran'] = True
-        print "After:", self.nothing
 
         self.assertEqual(self.nothing.__name__, meta['name'],
                          "Name of function mustn't change when advised.")
@@ -67,7 +65,6 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertTrue(callable(self.nothing),
                         "The function needs to remain callable")
 
-        print "Pre-call:", self.nothing
         self.nothing()
 
         self.assertTrue(trace['ran'],
