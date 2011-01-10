@@ -47,7 +47,7 @@ class Boilerplate(object):
 
 
     def tearDown(self):
-        pydvice.deactivate_all()
+        pydvice._flush()
 
 ##Test Cases##
 class BeforeTests(Boilerplate, unittest.TestCase):

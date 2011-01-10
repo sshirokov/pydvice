@@ -19,12 +19,20 @@ class pydvice(object):
         return cls.advised[position][fun]
 
     @classmethod
+    def _flush(cls):
+        cls.deactivate_all()
+        advised = {}
+
+    @classmethod
     def deactivate_all(cls):
-        #TODO: Deactivate, don't just forget about
-        [cls.advised.update({key: {}}) for key in cls.advised.keys()]
+        [[[a.deactivate() for a in advices]
+          for fun, advices in advised.items()]
+         for advised in cls.advised.values()]
 
 
 class BaseAdvice(object):
+    active = None
+
     def __init__(self, fun, **options):
         self.options = dict({'activate': True},
                             **options)
@@ -38,9 +46,21 @@ class BaseAdvice(object):
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
         if self.options['activate']: self.activate()
 
+    def __call__(self, advice):
+        pydvice._register(self.position, self.fun_ref, self)
+
+        self.advice = advice
+        return self.run
+
+
     @property
-    def position(self):
-        raise NotImplementedError
+    def position(self): raise NotImplementedError
+    def run(self, *a, **k): raise NotImplementedError
+
+    def deactivate(self):
+        self.fun_ref.func_code = self.fun.func_code
+        self.fun_ref.func_globals.pop(self.shadow_name, None)
+        self.active = False
 
     def activate(self):
         self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
@@ -70,6 +90,7 @@ class BaseAdvice(object):
             else:
                 self.call_expr['bound'] = True
         self.fun_ref.func_globals.update(**{self.shadow_name: self})
+        self.activate = True
 
 
 @pydvice.defines('before')
@@ -78,10 +99,3 @@ class Before(BaseAdvice):
     def run(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
-
-    def __call__(self, advice):
-        pydvice._register(self.position, self.fun_ref, advice)
-
-        self.advice = advice
-        return self.run
-
