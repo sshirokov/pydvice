@@ -64,6 +64,11 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+class AroundTests(Boilerplate, unittest.TestCase):
+    def test_have_after(self):
+        self.assertTrue(pydvice.around,
+                        "pydvice.around should probably exist.")
+
 class AfterTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
         self.assertTrue(pydvice.after,
