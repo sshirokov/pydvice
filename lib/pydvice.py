@@ -155,6 +155,8 @@ class After(BaseAdvice):
 
     Advice function called as follows:
       advice(return_of_call, args=args_to_function, kwargs=kwargs_to_function)
+
+    Returning from the advice function alters the return of the advised function.
     '''
     def act(self, *args, **kwargs):
         r = self.fun(*args, **kwargs)
@@ -174,6 +176,9 @@ class Around(BaseAdvice):
 
       result: A callable of either 0 or 1 arguments. Without arguments returns the current
               return value. With argument sets the value to be returned.
+
+    Either calling result() with a value or returning from the advice will alter the return
+    of the advised function.
     '''
     def act(self, *args, **kwargs):
         @with_attrs(value=None)
