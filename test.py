@@ -65,8 +65,9 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         self.assertTrue(pydvice, "Must have pydvice to test")
 
 class UsecaseTests(Boilerplate, unittest.TestCase):
-    def test_can_advise_instance_methods(self):
-        trace = {'ran': False}
+    def setUp(self):
+        import copy
+        super(self.__class__, self).setUp()
         class TestClass(object):
             def meth(self, a):
                 return a + 1
@@ -78,12 +79,16 @@ class UsecaseTests(Boilerplate, unittest.TestCase):
             @staticmethod
             def staticmeth(c):
                 return c + 3
+        self.TestClass = copy.deepcopy(TestClass)
 
-        @pydvice.before(TestClass.meth)
+    def test_can_advise_instance_methods(self):
+        trace = {'ran': False}
+
+        @pydvice.before(self.TestClass.meth)
         def meth_advice(*args, **kwargs):
             trace['ran'] = True
 
-        self.assertEqual(TestClass().meth(1), 2,
+        self.assertEqual(self.TestClass().meth(1), 2,
                          "The method should still function when advised.")
         self.assertTrue(trace['ran'],
                         "The advice should have ran when attached to a method.")
