@@ -19,8 +19,11 @@ class pydvice(object):
         return cls.advised[position][fun]
 
     @classmethod
-    def _flush(cls):
+    def reset(cls):
         cls.deactivate_all()
+        [[[a.unbind() for a in advices]
+          for fun, advices in advised.items()]
+         for advised in cls.advised.values()]
         advised = {}
 
     @classmethod
@@ -44,6 +47,7 @@ class BaseAdvice(object):
                                       fun.func_closure)
 
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
+        self.bind()
         if self.options['activate']: self.activate()
 
     def __call__(self, advice):
@@ -56,14 +60,13 @@ class BaseAdvice(object):
 
     @property
     def position(self): raise NotImplementedError
-    def run(self, *a, **k): raise NotImplementedError
+    def act(self, *a, **k): raise NotImplementedError
 
-    def deactivate(self):
-        self.fun_ref.func_code = self.fun.func_code
-        self.fun_ref.func_globals.pop(self.shadow_name, None)
-        self.active = False
+    def run(self, *a, **k):
+        if self.active: return self.act(*a, **k)
+        else: return self.fun(*a, **k)
 
-    def activate(self):
+    def bind(self):
         self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
                               shadow=self.shadow_name,
                               bound=False,
@@ -91,12 +94,25 @@ class BaseAdvice(object):
             else:
                 self.call_expr['bound'] = True
         self.fun_ref.func_globals.update(**{self.shadow_name: self})
-        self.activate = True
+        return self
+
+    def unbind(self):
+        self.fun_ref.func_code = self.fun.func_code
+        self.fun_ref.func_globals.pop(self.shadow_name, None)
+        return self
+
+    def deactivate(self):
+        self.active = False
+        return self
+
+    def activate(self):
+        self.active = True
+        return self
 
 
 @pydvice.defines('before')
 class Before(BaseAdvice):
     '''Definition of before advice'''
-    def run(self, *args, **kwargs):
+    def act(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
