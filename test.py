@@ -69,6 +69,45 @@ class AroundTests(Boilerplate, unittest.TestCase):
         self.assertTrue(pydvice.around,
                         "pydvice.around should probably exist.")
 
+    def test_can_call_original(self):
+        trace = {'ran': False, 'result': None}
+
+        @pydvice.around(self.identity)
+        def passive(doit, result, args, kwargs):
+            doit()
+            trace.update(ran=True,
+                         result=result())
+
+        self.assertTrue(self is self.identity(self),
+                        "The advice given calls the original, so identity should keep working")
+        self.assertTrue(trace['ran'],
+                        "The advice should have noted its pass in the trace.")
+        self.assertTrue(self is trace['result'],
+                        "The advice should have access to the result, and it should be correct")
+
+    def test_can_modify_return_with_helper(self):
+        @pydvice.around(self.identity)
+        def wrongify_identity(doit, result, args, kwargs):
+            doit()
+            result(self.identity)
+
+        self.assertFalse(self is self.identity(self),
+                         "The advice should have affected the return value")
+        self.assertTrue(self.identity is self.identity(self),
+                        "The result of self.identity() should now always be self.identity")
+
+    def test_can_modify_return_with_return(self):
+        @pydvice.around(self.identity)
+        def wrongify_identity(doit, result, args, kwargs):
+            doit()
+            return self.identity
+
+        self.assertFalse(self is self.identity(self),
+                         "The advice should have affected the return value by returning itself")
+        self.assertTrue(self.identity is self.identity(self),
+                        "The result of self.identity() should now always be self.identity")
+
+
 class AfterTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
         self.assertTrue(pydvice.after,

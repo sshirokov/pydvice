@@ -143,11 +143,9 @@ class Around(BaseAdvice):
     def act(self, *args, **kwargs):
         @with_attrs(value=None)
         def result(new_result=None):
-            if new_result: result.value = new_result
+            if new_result is not None: result.value = new_result
             return result.value
         def doit(): result(self.fun(*args, **kwargs))
 
-        ar = self.advice(doit, result, args=args, kwargs=kwargs)
-
-        return result() if ar is None else ar
+        return result(self.advice(doit, result, args=args, kwargs=kwargs))
 
