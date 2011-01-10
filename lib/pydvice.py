@@ -116,3 +116,12 @@ class Before(BaseAdvice):
     def act(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
+
+@pydvice.defines('after')
+class After(BaseAdvice):
+    '''Definition of after advice'''
+    def act(self, *args, **kwargs):
+        r = self.fun(*args, **kwargs)
+        ar = self.advice(r, args=args, kwargs=kwargs)
+
+        return r if ar is None else ar

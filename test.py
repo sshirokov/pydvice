@@ -58,12 +58,33 @@ class Boilerplate(object):
         pydvice.reset()
 
 ##Test Cases##
-class BeforeTests(Boilerplate, unittest.TestCase):
+class SanityChecks(Boilerplate, unittest.TestCase):
     def test_sanity(self):
         self.assertTrue(True, "True must be true")
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+class AfterTests(Boilerplate, unittest.TestCase):
+    def test_have_after(self):
+        self.assertTrue(pydvice.after,
+                        "pydvice.after should probably exist.")
+
+    def test_no_return(self):
+        trace = {'return': None, 'args': None, 'kwargs': None}
+
+        @pydvice.after(self.identity)
+        def set_trace(ret, args, kwargs):
+            trace.update(**{'return': ret,
+                            'args': args,
+                            'kwargs': kwargs})
+
+        self.assertTrue(self is self.identity(self),
+                        "Identity should continue functioning with this advice")
+        self.assertTrue(self is trace['return'],
+                        "The trace should recieve the return value of the function")
+
+
+class BeforeTests(Boilerplate, unittest.TestCase):
     def test_advise_activation(self):
         trace = {'ran': False}
 
