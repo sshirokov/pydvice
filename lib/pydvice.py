@@ -1,13 +1,5 @@
 import uuid
-import copy
 import types
-import functools
-
-def make_consuming_chain(*functions, **kwargs):
-    '''
-    Return a function that will call functions in sequence, passing the return down the chain of functions
-    '''
-    return reduce(lambda acc, f: lambda *args, **kwargs: f(acc(*args, **kwargs)), functions)
 
 class Before(object):
     '''Definition of before advice'''
