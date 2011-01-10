@@ -9,7 +9,7 @@ def make_consuming_chain(*functions, **kwargs):
     '''
     return reduce(lambda acc, f: lambda *args, **kwargs: f(acc(*args, **kwargs)), functions)
 
-class before(object):
+class Before(object):
     '''Definition of before advice'''
     def __init__(self, fun, **options):
         options = dict({}, **options)
@@ -38,9 +38,17 @@ class before(object):
 
     def __call__(self, advice):
         self.advice = advice
+        pydvice.advised['before'].setdefault(self.fun_ref, []).append(advice)
         return self.run
 
 class pydvice(object):
-    before = before
+    advised = {'before': {},
+               'around': {},
+               'after': {}}
 
+    before = Before
 
+    @classmethod
+    def deactivate_all(cls):
+        #TODO: Deactivate, don't just forget about
+        [cls.advised.update({key: {}}) for key in cls.advised.keys()]

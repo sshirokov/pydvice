@@ -40,7 +40,7 @@ class Boilerplate(object):
 
 
     def tearDown(self):
-        pass
+        pydvice.deactivate_all()
 
 ##Test Cases##
 class BeforeTests(Boilerplate, unittest.TestCase):
