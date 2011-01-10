@@ -64,7 +64,8 @@ class BaseAdvice(object):
         if self.options['activate']: self.activate()
 
     def __call__(self, advice):
-        pydvice._register(self.position, self.fun_ref, self)
+        if hasattr(self,  'pydvice'):
+            pydvice._register(self.position, self.fun_ref, self)
         advice.advice = self
 
         self.advice = advice
