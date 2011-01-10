@@ -69,6 +69,30 @@ class AroundTests(Boilerplate, unittest.TestCase):
         self.assertTrue(pydvice.around,
                         "pydvice.around should probably exist.")
 
+    def test_even_with_multiple_around_inner_should_run_once(self):
+        trace = {'first': False, 'second': False}
+        runs = []
+        def testfun():
+            runs.append("Running")
+            return True
+
+        @pydvice.around(testfun)
+        def first(doit, *rest, **kwargs):
+            trace['first'] = True
+            doit()
+
+        @pydvice.around(testfun)
+        def second(doit, *rest, **kwargs):
+            trace['second'] = True
+            doit()
+
+        self.assertTrue(testfun(),
+                        "testfun should return True and no advices modify that")
+        self.assertTrue(trace['first'] and trace['second'],
+                        "Both advices did not run")
+        self.assertEqual(len(runs), 1,
+                         "The inner function should only run once unless asked to otherwise")
+
     def test_can_call_original(self):
         trace = {'ran': False, 'result': None}
 
@@ -190,7 +214,7 @@ class BeforeTests(Boilerplate, unittest.TestCase):
                         "Identity should continue to function")
         self.assertTrue(trace['ran'],
                          "The advice should have run since it's now enabled.")
-        
+
     def test_advise_multivar_closure(self):
         trace = {'ran': False}
 
