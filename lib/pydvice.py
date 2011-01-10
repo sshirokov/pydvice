@@ -1,17 +1,18 @@
 import uuid
 import types
+import functools
 
 class pydvice(object):
     advised = {}
 
     @classmethod
-    def defines(cls, name):
-        def do_define(ad_cls):
-            setattr(cls, name, ad_cls)
-            setattr(ad_cls, 'position', name)
-            cls.advised[name] = {}
-            return ad_cls
-        return do_define
+    def defines(cls, name, advice=None):
+        if not advice: return functools.partial(cls.defines, name)
+
+        setattr(cls, name, advice)
+        setattr(advice, 'position', name)
+        cls.advised[name] = {}
+        return advice
 
     @classmethod
     def _register(cls, position, fun, advice):
