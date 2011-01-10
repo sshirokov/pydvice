@@ -1,4 +1,5 @@
 Pydvice: An attempt at bringing (defadvice ...) from Elisp to Python
+         AKA Don't you hate it when youre not writing lisp?
 
 In Elisp (defadvice ...) allows one add code 'before', 'after' and 'around' a given function
 to modify, augment, or merely hook into behavior, modify the function arguments and returns  and more.
@@ -6,16 +7,80 @@ Each piece of advice can be independently activated and deactivated.  And the su
 of this functionality leads to a much increased ease in code reuse and massaging to a specific
 application of more general functionality.
 
-This is my attempt to bring these features to Python by any means necessary. 
+This is my attempt to bring these features to Python by any means necessary.
 
 I advise (get it?) any intrigued party to glance at the Elisp documentation for the advice system:
 Elisp advice: http://www.gnu.org/s/emacs/manual/html_node/elisp/Advising-Functions.html
 
 Project Goals:
 - Provide 'before', 'after', and 'around' advice features to any function.
-- Allow any given piece of advice to be activated or deactivated 
+- Allow any given piece of advice to be activated or deactivated
 - Allow consumers of advised functions to remain ignorant of the application of advice
 - Provide robust argument mangling (get/set/reorder) in before and around advice
 - Provide robust return value handling in around and after advice
 - Try not to suck to badly at any of the above
 - Have a good time
+
+Obligatory copy-pasta proof/tutorial/crashcource
+------------------------------------------------
+# Get the code!
+$ git clone git://github.com/sshirokov/pydvice.git
+$ cd pydvice
+
+# Run the tests and feel good (or bad) about the result!
+$ python test.py
+
+# Built a virtualenv for it and install the library
+$ virtualenv ve
+$ . ve/bin/activate
+$ python setup.py develop
+
+# Throw caution to the wind and give it a shot
+$ python
+
+# Import the library
+>>> from pydvice import pydvice
+
+# Write a function
+>>> def there():
+...   print "there",
+...
+>>> there()
+there
+
+# Write a peice of 'before advice' to run before the function
+#   New advice is activated by default
+>>> @pydvice.before(there)
+... def hello():
+...   print "Hello",
+...
+
+# Note that active advice runs automatically on any function call
+>>> there()
+Hello there
+
+# Define a peice of 'after advice' but leave it disabled
+>>> @pydvice.after(there, activate=False)
+... def world(result, args, kwargs):
+...   print "world!",
+...
+
+# Note that bound, but deactivated advice does not affect the function
+>>> there()
+Hello there
+
+# Activate the after advice directly
+>>> world.advice.activate()
+<pydvice.After object at 0x1005bfa10>
+
+# Note that all active advice runs in the correct order
+>>> there()
+Hello there world!
+
+# Deactivate all advice to restore original behavior
+>>> pydvice.deactivate_all()
+>>> there()
+there
+
+# Leave the interpreter excited to try this out for real
+>>> exit()
