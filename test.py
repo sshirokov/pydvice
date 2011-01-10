@@ -20,9 +20,12 @@ class Boilerplate(object):
         return fn
 
     def setUp(self):
+        MAGIC = 'is everywhere'
+
         @self.attach
         def closure():
-            return self
+            return MAGIC
+        closure.MAGIC = MAGIC
 
         @self.attach
         def identity(o):
@@ -61,7 +64,7 @@ class BeforeTests(Boilerplate, unittest.TestCase):
             trace['ran'] = True
 
         this = self.closure()
-        self.assertTrue(this is self, "Closure is malfunctioning.")
+        self.assertEqual(this, self.closure.MAGIC, "Closure is malfunctioning.")
         self.assertTrue(trace['ran'], "The advice did not run")
 
     def test_multiple_advice(self):
