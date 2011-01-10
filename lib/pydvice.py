@@ -1,10 +1,10 @@
 import uuid
 import types
 
-class Before(object):
-    '''Definition of before advice'''
+class BaseAdvice(object):
     def __init__(self, fun, **options):
-        options = dict({}, **options)
+        self.options = dict({'activate': True},
+                            **options)
         self.fun_ref = fun
         self.fun = types.FunctionType(fun.func_code,
                                       fun.func_globals,
@@ -13,42 +13,55 @@ class Before(object):
                                       fun.func_closure)
 
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
+        if self.options['activate']: self.activate()
 
-        call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
-                         shadow=self.shadow_name,
-                         bound=False,
-                         magic='0xface',
-                         freevars=[])
-        while not call_expr['bound']:
-            caller = eval(compile(call_expr['expr'].format(**call_expr),
-                                  '<pydvice.before>', 'eval'))
-            try: fun.func_code = types.FunctionType(caller.func_code,
-                                                    fun.func_globals,
-                                                    fun.__name__,
-                                                    fun.func_defaults,
-                                                    fun.func_closure).func_code
+    @property
+    def position(self):
+        raise NotImplementedError
+
+    def activate(self):
+        self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
+                              shadow=self.shadow_name,
+                              bound=False,
+                              magic='0xface',
+                              freevars=[])
+        while not self.call_expr['bound']:
+            caller = eval(compile(self.call_expr['expr'].format(**self.call_expr),
+                                  '<pydvice.%s>' % self.position, 'eval'))
+            try: self.fun_ref.func_code = types.FunctionType(caller.func_code,
+                                                             self.fun_ref.func_globals,
+                                                             self.fun_ref.__name__,
+                                                             self.fun_ref.func_defaults,
+                                                             self.fun_ref.func_closure).func_code
             except ValueError, e:
                 if 'closure of length' not in str(e): raise
 
-                call_expr['freevars'].append('__%s' % uuid.uuid4().hex)
-                call_expr.update(
+                self.call_expr['freevars'].append('__%s' % uuid.uuid4().hex)
+                self.call_expr.update(
                     expr=reduce(lambda acc, var: \
-                                    '(lambda {var}: {expr})(True)'.format(**dict(call_expr, var=var, expr=acc)),
-                                call_expr['freevars'],
-                                call_expr['expr']),
-                    magic='(%s,)' % ','.join(call_expr['freevars'])
+                                    '(lambda {var}: {expr})(True)'.format(**dict(self.call_expr, var=var, expr=acc)),
+                                self.call_expr['freevars'],
+                                self.call_expr['expr']),
+                    magic='(%s,)' % ','.join(self.call_expr['freevars'])
                 )
             else:
-                call_expr['bound'] = True
-        fun.func_globals.update(**{self.shadow_name: self})
+                self.call_expr['bound'] = True
+        self.fun_ref.func_globals.update(**{self.shadow_name: self})
+
+
+class Before(BaseAdvice):
+    '''Definition of before advice'''
+
+    position = 'before'
 
     def run(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
 
     def __call__(self, advice):
+        pydvice._register(self.position, self.fun_ref, advice)
+
         self.advice = advice
-        pydvice.advised['before'].setdefault(self.fun_ref, []).append(self)
         return self.run
 
 class pydvice(object):
@@ -57,6 +70,11 @@ class pydvice(object):
                'after': {}}
 
     before = Before
+
+    @classmethod
+    def _register(cls, position, fun, advice):
+        cls.advised[position].setdefault(fun, []).append(advice)
+        return cls.advised[position][fun]
 
     @classmethod
     def deactivate_all(cls):
