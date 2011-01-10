@@ -124,14 +124,23 @@ class BaseAdvice(object):
 
 @pydvice.defines('before')
 class Before(BaseAdvice):
-    '''Definition of before advice'''
+    '''
+    Definition of before advice
+
+    Advice function must have compatible arguments with the advised function
+    '''
     def act(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
 
 @pydvice.defines('after')
 class After(BaseAdvice):
-    '''Definition of after advice'''
+    '''
+    Definition of after advice
+
+    Advice function called as follows:
+      advice(return_of_call, args=args_to_function, kwargs=kwargs_to_function)
+    '''
     def act(self, *args, **kwargs):
         r = self.fun(*args, **kwargs)
         ar = self.advice(r, args=args, kwargs=kwargs)
@@ -139,7 +148,18 @@ class After(BaseAdvice):
 
 @pydvice.defines('around')
 class Around(BaseAdvice):
-    '''Definition of around advice'''
+    '''
+    Definition of around advice
+
+    Advice function called as follows:
+      advice(doit, result, args=args_to_function, kwargs=kwargs_to_function)
+
+    Special params
+      doit: A callable of no arguments which results in a function call and stores the result.
+
+      result: A callable of either 0 or 1 arguments. Without arguments returns the current
+              return value. With argument sets the value to be returned.
+    '''
     def act(self, *args, **kwargs):
         @with_attrs(value=None)
         def result(new_result=None):
