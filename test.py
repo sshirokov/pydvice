@@ -107,6 +107,17 @@ class AroundTests(Boilerplate, unittest.TestCase):
         self.assertTrue(self.identity is self.identity(self),
                         "The result of self.identity() should now always be self.identity")
 
+    def test_can_skip_calling_function(self):
+        self.assertEqual(self.sum2(1, 1), 2,
+                         "The advice should make this addition inconsistant, but always wrong")
+
+        @pydvice.around(self.sum2)
+        def suck_at_math(doit, result, args, kwargs):
+            import random
+            return sum(args) + random.randint(1, 10)
+
+        self.assertNotEqual(self.sum2(1, 1), 2,
+                            "The advice should make this addition inconsistant, but always wrong")
 
 class AfterTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
