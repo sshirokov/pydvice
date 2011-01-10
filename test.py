@@ -119,6 +119,19 @@ class AroundTests(Boilerplate, unittest.TestCase):
         self.assertNotEqual(self.sum2(1, 1), 2,
                             "The advice should make this addition inconsistant, but always wrong")
 
+    def test_can_skip_dangerous_function(self):
+        class TestException(Exception): pass
+        def failure():
+            raise TestException("This function should be suppressed by advice")
+        self.assertRaises(TestException, failure)
+
+        @pydvice.around(failure)
+        def ignore(*a, **k):
+            return "passed"
+
+        try: self.assertEqual(failure(), "passed", "Failure should now be returning 'passed' and doing nothing")
+        except TestException: self.fail("failure() proper should no longer run, and therefore not raise TestException")
+
 class AfterTests(Boilerplate, unittest.TestCase):
     def test_have_after(self):
         self.assertTrue(pydvice.after,
