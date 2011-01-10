@@ -49,6 +49,22 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+    def test_multiple_advice(self):
+        trace = {'first': False,
+                 'second': False}
+
+        @pydvice.before(self.nothing)
+        def store_first():
+            trace['first'] = True
+
+        @pydvice.before(self.nothing)
+        def store_first():
+            trace['second'] = True
+
+        self.assertFalse(trace['first'] or trace['second'], "Both before advices did not run")
+        self.nothing()
+        self.assertTrue(trace['first'] and trace['second'], "Both before advices did not run")
+
     def test_advise_lambda(self):
         argses = []
         fun = lambda x, y: x+y
