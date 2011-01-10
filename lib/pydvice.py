@@ -8,6 +8,7 @@ class pydvice(object):
     def defines(cls, name):
         def do_define(ad_cls):
             setattr(cls, name, ad_cls)
+            setattr(ad_cls, 'position', name)
             cls.advised[name] = {}
             return ad_cls
         return do_define
@@ -74,9 +75,6 @@ class BaseAdvice(object):
 @pydvice.defines('before')
 class Before(BaseAdvice):
     '''Definition of before advice'''
-
-    position = 'before'
-
     def run(self, *args, **kwargs):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
