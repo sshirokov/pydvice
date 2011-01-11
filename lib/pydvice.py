@@ -28,28 +28,25 @@ class pydvice(object):
         setattr(cls, name, advice)
         setattr(advice, 'position', name)
         setattr(advice, 'pydvice', cls)
-        cls.advised[name] = {}
         return advice
 
     @classmethod
     def _register(cls, position, fun, advice):
-        cls.advised[position].setdefault(fun, []).append(advice)
-        return cls.advised[position][fun]
+        cls.advised[fun] = cls.advised.get(fun, []) + [advice]
+        return cls.advised[fun]
 
     @classmethod
     def reset(cls):
         cls.deactivate_all()
-        [[[a.unbind() for a in advices]
-          for fun, advices in advised.items()]
-         for advised in cls.advised.values()]
-        cls.advised = dict([(name, {}) for name in cls.advised.keys()])
+        [[a.unbind() for a in reversed(advice)]
+         for fun, advice in cls.advised.items()]
+        cls.advised = {}
 
     @classmethod
     def deactivate_all(cls):
-        [[[a.deactivate() for a in advices]
-          for fun, advices in advised.items()]
-         for advised in cls.advised.values()]
-
+        [advice.deactivate()
+         for funlists in cls.advised.values()
+         for advice in funlists]
 
 class BaseAdvice(object):
     _meta = None
