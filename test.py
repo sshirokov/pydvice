@@ -234,6 +234,29 @@ class AroundTests(Boilerplate, unittest.TestCase):
         except TestException: self.fail("failure() proper should no longer run, and therefore not raise TestException")
 
 class AfterTests(Boilerplate, unittest.TestCase):
+    def test_multiple_after_apply_in_logical_order(self):
+        output = []
+
+        def a():
+            output.append("a")
+
+        @pydvice.before(a)
+        def b():
+            output.append("b")
+
+        @pydvice.after(a)
+        def c(r, **k):
+            output.append("c")
+
+        @pydvice.after(a)
+        def d(r, **k):
+            output.append("d")
+
+        a()
+
+        self.assertEqual(output, ['b', 'a', 'c', 'd'],
+                         "The advice did not run in a logical order")
+
     def test_have_after(self):
         self.assertTrue(pydvice.after,
                         "pydvice.after should probably exist.")
