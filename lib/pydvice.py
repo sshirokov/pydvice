@@ -38,7 +38,7 @@ class pydvice(object):
 
     @classmethod
     def _register(cls, fun, advice):
-        sort_k = {'key': lambda a: a._meta.get('priority', None), 'reverse': True}
+        sort_k = {'key': lambda a: a.key, 'reverse': True}
         sorted_ads, ads = (lambda al: (sorted(al, **sort_k), al))(
             cls.advised.get(fun, []) + [advice.bind()]
         )
