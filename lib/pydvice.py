@@ -21,6 +21,21 @@ class pydvice(object):
     def __init__(self, *a, **k): raise PydviceError("pydvice class should not instantiated")
 
     @classmethod
+    @with_attrs(repo={})
+    def original_fun(cls, fun):
+        self = cls.original_fun
+        if fun in self.repo.keys():
+            fun = self.repo[fun]
+        else:
+            self.repo[fun] = types.FunctionType(fun.func_code,
+                                                fun.func_globals,
+                                                fun.__name__,
+                                                fun.func_defaults,
+                                                fun.func_closure)
+            fun = self.repo[fun]
+        return fun
+
+    @classmethod
     def defines(cls, name, advice=None, **options):
         if not advice: return functools.partial(cls.defines, name, **options)
 
@@ -33,6 +48,15 @@ class pydvice(object):
     @classmethod
     def _register(cls, fun, advice):
         cls.advised[fun] = cls.advised.get(fun, []) + [advice]
+        if advice._meta.get('priority', False):
+            [a.unbind() for a in reversed(cls.advised[fun])]
+            cls.advised[fun].sort(reverse=True,
+                                  key=lambda a: a._meta.get('priority', None))
+            def bind_one(acc, b):
+                #TODO: You are here
+                return acc
+            reduce(bind_one, cls.advised[fun], cls.original_fun(fun))
+            [a.bind() for a in cls.advised[fun]]
         return cls.advised[fun]
 
     @classmethod
@@ -53,21 +77,25 @@ class BaseAdvice(object):
     active = None
 
     def __init__(self, fun, **options):
-        fun = fun if isinstance(fun, types.FunctionType) else fun.im_func
         self.options = dict({'activate': True},
                             **options)
+        fun = self.store_fun(fun)
+        self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
+
+        self.bind()
+        if self.options['activate']: self.activate()
+        self.pydvice._register(self.fun_ref, self)
+
+    def store_fun(self, fun):
+        fun = fun if isinstance(fun, types.FunctionType) else fun.im_func
+        self.pydvice.original_fun(fun)
         self.fun_ref = fun
         self.fun = types.FunctionType(fun.func_code,
                                       fun.func_globals,
                                       fun.__name__,
                                       fun.func_defaults,
                                       fun.func_closure)
-
-        self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
-
-        self.bind()
-        if self.options['activate']: self.activate()
-        if hasattr(self,  'pydvice'): pydvice._register(self.fun_ref, self)
+        return fun
 
 
     def __call__(self, advice):
