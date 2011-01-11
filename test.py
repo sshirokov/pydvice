@@ -99,11 +99,10 @@ class UsecaseTests(Boilerplate, unittest.TestCase):
             runs.append('around')
             doit()
 
-
         self.assertTrue(self is self.identity(self),
                         "identity should keep functioning even with many advice layers")
         self.assertEqual(runs, ['before', 'around', 'after'],
-                         "The advice should be applied in the order: before->around->after")
+                         "The advice should be applied in the order: before->around->after got %s" % ('->'.join(runs)))
 
     def test_can_advise_instance_methods(self):
         trace = {'ran': False}
