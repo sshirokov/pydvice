@@ -27,7 +27,7 @@ class pydvice(object):
         advice._meta = options
         setattr(cls, name, advice)
         setattr(advice, 'position', name)
-        setattr(advice, 'pydvice', cls)
+
         return advice
 
     @classmethod
