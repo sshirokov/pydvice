@@ -21,21 +21,6 @@ class pydvice(object):
     def __init__(self, *a, **k): raise PydviceError("pydvice class should not instantiated")
 
     @classmethod
-    @with_attrs(repo={})
-    def original_fun(cls, fun):
-        self = cls.original_fun
-        if fun in self.repo.keys():
-            fun = self.repo[fun]
-        else:
-            self.repo[fun] = types.FunctionType(fun.func_code,
-                                                fun.func_globals,
-                                                fun.__name__,
-                                                fun.func_defaults,
-                                                fun.func_closure)
-            fun = self.repo[fun]
-        return fun
-
-    @classmethod
     def defines(cls, name, advice=None, **options):
         if not advice: return functools.partial(cls.defines, name, **options)
 
@@ -86,7 +71,7 @@ class BaseAdvice(object):
                             **options)
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
 
-        self.pydvice.original_fun(self.init_fun(fun))
+        self.init_fun(fun)
         self.pydvice._register(self.fun_ref, self)
 
         if self.options['activate']: self.activate()
