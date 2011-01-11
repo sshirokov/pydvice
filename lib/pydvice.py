@@ -168,9 +168,21 @@ class Before(BaseAdvice):
     Definition of before advice
 
     Advice function must have compatible arguments with the advised function
+
+    You may return an alternate set of arguments to use for the inner function:
+      return (args,)
+      return (args, kwargs)
     '''
     def act(self, *args, **kwargs):
-        self.advice(*args, **kwargs)
+        maybe_args = self.advice(*args, **kwargs)
+
+        if maybe_args is not None:
+            maybe_args = maybe_args if isinstance(maybe_args, types.TupleType) else (maybe_args,)
+
+            try:
+                args, kwargs = {1: (maybe_args, kwargs),
+                                2: maybe_args}[len(maybe_args)]
+            except KeyError: raise PydviceError("Invalid return from before filter")
         return self.fun(*args, **kwargs)
 
 @pydvice.defines('after', priority=99)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os
+import sys, os, types
 import unittest
 
 #Try 'just' importing pydvice,
@@ -269,6 +269,24 @@ class AfterTests(Boilerplate, unittest.TestCase):
 
 
 class BeforeTests(Boilerplate, unittest.TestCase):
+    def test_before_modify_params(self):
+        @pydvice.before(self.identity)
+        def make_it_cake_instead(o):
+            return "I want cake %s" % (o)
+
+        self.assertTrue(isinstance(self.identity(self), types.StringTypes),
+                        "Identity should sudently find itself retruning strings.")
+        self.assertTrue(self.identity(self).startswith("I want cake"),
+                        "Identity should begin to exclaim it's hungry")
+
+    def test_before_modify_multiple_params(self):
+        @pydvice.before(self.sum2)
+        def double_args(*args, **kwargs):
+            return [i*2 for i in args], kwargs
+
+        self.assertEqual(self.sum2(1, 1), 4,
+                         "Arguments were not doubled")
+
     def test_advise_activation(self):
         trace = {'ran': False}
 
