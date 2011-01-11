@@ -31,7 +31,7 @@ class pydvice(object):
         return advice
 
     @classmethod
-    def _register(cls, position, fun, advice):
+    def _register(cls, fun, advice):
         cls.advised[fun] = cls.advised.get(fun, []) + [advice]
         return cls.advised[fun]
 
@@ -64,8 +64,11 @@ class BaseAdvice(object):
                                       fun.func_closure)
 
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
+
         self.bind()
         if self.options['activate']: self.activate()
+        if hasattr(self,  'pydvice'): pydvice._register(self.fun_ref, self)
+
 
     def __call__(self, advice):
         advice.advice = self
@@ -81,10 +84,7 @@ class BaseAdvice(object):
         if self.active: return self.act(*a, **k)
         else: return self.fun(*a, **k)
 
-    def bind(self, register=True):
-        if register and hasattr(self,  'pydvice'):
-            pydvice._register(self.position, self.fun_ref, self)
-
+    def bind(self):
         self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
                               shadow=self.shadow_name,
                               bound=False,
