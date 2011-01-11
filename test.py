@@ -64,6 +64,10 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         self.assertFalse(False, "False must be false")
         self.assertTrue(pydvice, "Must have pydvice to test")
 
+    def test_cant_init_pydvice(self):
+        from pydvice import PydviceError
+        self.assertRaises(PydviceError, pydvice)
+
 class UsecaseTests(Boilerplate, unittest.TestCase):
     def setUp(self):
         import copy
@@ -80,6 +84,26 @@ class UsecaseTests(Boilerplate, unittest.TestCase):
             def staticmeth(c):
                 return c + 3
         self.TestClass = copy.deepcopy(TestClass)
+
+    def test_advice_runs_in_correct_order(self):
+        runs = []
+
+        @pydvice.after(self.identity)
+        def after(r, args, kwargs):
+            runs.append('after')
+        @pydvice.before(self.identity)
+        def before(o):
+            runs.append('before')
+        @pydvice.around(self.identity)
+        def around(doit, *rest, **k):
+            runs.append('around')
+            doit()
+
+
+        self.assertTrue(self is self.identity(self),
+                        "identity should keep functioning even with many advice layers")
+        self.assertEqual(runs, ['before', 'around', 'after'],
+                         "The advice should be applied in the order: before->around->after")
 
     def test_can_advise_instance_methods(self):
         trace = {'ran': False}

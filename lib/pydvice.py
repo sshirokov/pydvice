@@ -13,13 +13,19 @@ class with_attrs(object):
         [setattr(f, opt, val) for (opt, val) in self.options.items()]
         return f
 
+class PydviceError(Exception): pass
+
 class pydvice(object):
     advised = {}
+    advice_classes = []
+
+    def __init__(self, *a, **k): raise PydviceError("pydvice class should not instantiated")
 
     @classmethod
-    def defines(cls, name, advice=None):
-        if not advice: return functools.partial(cls.defines, name)
+    def defines(cls, name, advice=None, **options):
+        if not advice: return functools.partial(cls.defines, name, **options)
 
+        advice._meta = options
         setattr(cls, name, advice)
         setattr(advice, 'position', name)
         setattr(advice, 'pydvice', cls)
@@ -45,13 +51,9 @@ class pydvice(object):
           for fun, advices in advised.items()]
          for advised in cls.advised.values()]
 
-    @classmethod
-    def rebind_all(cls):
-        for atype in cls.advised.keys():
-            self.getattr(cls, atype).rebind_all()
-
 
 class BaseAdvice(object):
+    _meta = None
     active = None
 
     def __init__(self, fun, **options):
@@ -83,15 +85,8 @@ class BaseAdvice(object):
         if self.active: return self.act(*a, **k)
         else: return self.fun(*a, **k)
 
-    @classmethod
-    def rebind_all(cls):
-        if not hasattr(cls, 'pydvice'): return
-        for fun, advices in cls.pydvice.advised[cls.position]:
-            [a.unbind() for a in advices]
-            [a.bind() for a in advices]
-
-    def bind(self):
-        if hasattr(self,  'pydvice'):
+    def bind(self, register=True):
+        if register and hasattr(self,  'pydvice'):
             pydvice._register(self.position, self.fun_ref, self)
 
         self.call_expr = dict(expr='lambda *a, **k: {magic} and {shadow}.run(*a, **k)',
@@ -137,7 +132,7 @@ class BaseAdvice(object):
         return self
 
 
-@pydvice.defines('before')
+@pydvice.defines('before', priority=33)
 class Before(BaseAdvice):
     '''
     Definition of before advice
@@ -148,7 +143,7 @@ class Before(BaseAdvice):
         self.advice(*args, **kwargs)
         return self.fun(*args, **kwargs)
 
-@pydvice.defines('after')
+@pydvice.defines('after', priority=99)
 class After(BaseAdvice):
     '''
     Definition of after advice
@@ -163,7 +158,7 @@ class After(BaseAdvice):
         ar = self.advice(r, args=args, kwargs=kwargs)
         return r if ar is None else ar
 
-@pydvice.defines('around')
+@pydvice.defines('around', priority=66)
 class Around(BaseAdvice):
     '''
     Definition of around advice
