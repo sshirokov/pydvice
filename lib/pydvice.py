@@ -49,7 +49,7 @@ class pydvice(object):
                    sorted_ads,
                    fun)
 
-        cls.advised[fun] = ads
+        cls.advised[fun] = sorted_ads
         return advice
 
     @classmethod
@@ -88,9 +88,13 @@ class BaseAdvice(object):
 
         if self.options['activate']: self.activate()
 
+    def sort_index(self, seq, **options):
+        return seq
+
     @property
     def key(self):
-        return (self._meta.get('priority', None), self.index)
+        return (self._meta.get('priority', None),
+                self.sort_index(self.index))
 
 
     def init_fun(self, fun):
@@ -161,6 +165,12 @@ class BaseAdvice(object):
         self.active = True
         return self
 
+    def __repr__(self):
+        return '<%s(%s)[%s]->%s>' % (self.__class__.__name__,
+                                     self.fun_ref.__name__,
+                                     self.key,
+                                     self.advice and self.advice.__name__)
+
 
 @pydvice.defines('before', priority=33)
 class Before(BaseAdvice):
@@ -195,6 +205,15 @@ class After(BaseAdvice):
 
     Returning from the advice function alters the return of the advised function.
     '''
+    def sort_index(self, seq):
+        '''
+        After advice application order must be inverted
+        to maintain logical application order.
+
+        TODO: Explain why
+        '''
+        return -super(After, self).sort_index(seq)
+
     def act(self, *args, **kwargs):
         r = self.fun(*args, **kwargs)
         ar = self.advice(r, args=args, kwargs=kwargs)
