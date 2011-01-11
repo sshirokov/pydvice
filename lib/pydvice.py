@@ -17,8 +17,14 @@ class PydviceError(Exception): pass
 
 class pydvice(object):
     advised = {}
+    _index = 0
 
     def __init__(self, *a, **k): raise PydviceError("pydvice class should not instantiated")
+
+    @classmethod
+    def next_index(cls):
+        cls._index += 1
+        return cls._index
 
     @classmethod
     def defines(cls, name, advice=None, **options):
@@ -69,8 +75,10 @@ class BaseAdvice(object):
     fun_ref = None
     shadow_name = None
     pydvice = pydvice
+    index = None
 
     def __init__(self, fun, **options):
+        self.index = self.pydvice.next_index()
         self.options = dict(self.options,
                             **options)
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
@@ -79,6 +87,10 @@ class BaseAdvice(object):
         self.pydvice._register(self.fun_ref, self)
 
         if self.options['activate']: self.activate()
+
+    @property
+    def key(self):
+        return (self._meta.get('priority', None), self.index)
 
 
     def init_fun(self, fun):
