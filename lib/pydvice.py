@@ -17,7 +17,6 @@ class PydviceError(Exception): pass
 
 class pydvice(object):
     advised = {}
-    advice_classes = []
 
     def __init__(self, *a, **k): raise PydviceError("pydvice class should not instantiated")
 
