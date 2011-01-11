@@ -47,17 +47,19 @@ class pydvice(object):
 
     @classmethod
     def _register(cls, fun, advice):
-        cls.advised[fun] = cls.advised.get(fun, []) + [advice]
-        if advice._meta.get('priority', False):
-            [a.unbind() for a in reversed(cls.advised[fun])]
-            cls.advised[fun].sort(reverse=True,
-                                  key=lambda a: a._meta.get('priority', None))
-            def bind_one(acc, b):
-                #TODO: You are here
-                return acc
-            reduce(bind_one, cls.advised[fun], cls.original_fun(fun))
-            [a.bind() for a in cls.advised[fun]]
-        return cls.advised[fun]
+        sort_k = {'key': lambda a: a._meta.get('priority', None), 'reverse': True}
+        sorted_ads, ads = (lambda al: (sorted(al, **sort_k), al))(
+            cls.advised.get(fun, []) + [advice.bind()]
+        )
+
+        if ads != sorted_ads:
+            [a.unbind() for a in reversed(ads)]
+            reduce(lambda fun, ad: ad.init_fun(fun) and ad.bind().fun_ref,
+                   sorted_ads,
+                   fun)
+
+        cls.advised[fun] = ads
+        return advice
 
     @classmethod
     def reset(cls):
@@ -76,19 +78,22 @@ class BaseAdvice(object):
     _meta = None
     active = None
 
+    fun = None
+    fun_ref = None
+
     def __init__(self, fun, **options):
         self.options = dict({'activate': True},
                             **options)
-        fun = self.store_fun(fun)
         self.shadow_name = '__advice_shadow_%s' % uuid.uuid4().hex
 
-        self.bind()
-        if self.options['activate']: self.activate()
+        self.pydvice.original_fun(self.init_fun(fun))
         self.pydvice._register(self.fun_ref, self)
 
-    def store_fun(self, fun):
+        if self.options['activate']: self.activate()
+
+
+    def init_fun(self, fun):
         fun = fun if isinstance(fun, types.FunctionType) else fun.im_func
-        self.pydvice.original_fun(fun)
         self.fun_ref = fun
         self.fun = types.FunctionType(fun.func_code,
                                       fun.func_globals,
