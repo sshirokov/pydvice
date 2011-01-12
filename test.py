@@ -116,13 +116,24 @@ class PositionTests(Boilerplate, unittest.TestCase):
         self.assertTrue(self.identity(self) is self,
                          "Even despite the overwhelming amount of advice, identity should function")
         self.assertEqual(self.runs[0], 'first',
-                         "Advice with position='first' should run first")
+                         "Advice with position='first' should run first, was: %s" % self.runs)
         self.assertEqual(self.runs[0], 'last',
-                         "Advice with position='first' should run first")
+                         "Advice with position='first' should run first, was: %s" % self.runs)
         self.assertTrue(len(self.runs[1:-1]),
-                        "More advice than just first and last should run")
+                        "More advice than just first and last should run, runs: %s" % self.runs)
 
     def test_advice_relative_positions(self):
+        @pydvice.before(self.identity, position={'after': self.c})
+        def after_c(*a, **k):
+            self.runs.append('after_c')
+
+        @pydvice.before(self.identity, position={'after': self.b})
+        def before_b(*a, **k):
+            self.runs.append('before_b')
+
+        self.assertTrue(self.identity(self) is self,
+                        "Even despite the overwhelming amount of advice, identity should function")
+
         self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify a relative position for my advice with the option: position={'before'|'after': other_advice_fun}")
 
     def test_advice_absolute_positions(self):
