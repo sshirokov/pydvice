@@ -70,6 +70,36 @@ class SanityChecks(Boilerplate, unittest.TestCase):
 
 class SanityChecks(Boilerplate, unittest.TestCase):
     def test_advice_relative_positions(self):
+        runs = []
+
+        #Advices a->d serve as padding to ensure the first and last slots will be very well occupied
+        @pydvice.before(self.identity)
+        def a(*a, **k):
+            runs.append('a')
+
+        @pydvice.before(self.identity)
+        def b(*a, **k):
+            runs.append('b')
+
+        #Positional advice
+        @pydvice.before(self.identity, position='first')
+        def first(*a, **k):
+            runs.append('first')
+
+        @pydvice.before(self.identity, position='last')
+        def first(*a, **k):
+            runs.append('first')
+
+        #And back to padding
+        @pydvice.before(self.identity)
+        def c(*a, **k):
+            runs.append('c')
+
+        @pydvice.before(self.identity)
+        def d(*a, **k):
+            runs.append('d')
+
+
         self.fail("I should be able to specify a relative position for my advice with the option: position='first'|'last'|{'before'|'after': other_advice_fun}")
 
     def test_advice_absolute_positions(self):
