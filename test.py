@@ -187,8 +187,27 @@ class PositionTests(Boilerplate, unittest.TestCase):
         self.assertEqual(self.runs.index('fourth'), 4,
                          "fourth advice should be positioned at 4, runs: %s" % self.runs)
 
-    def test_equal_declared_positions_sort_by_creation(self):
-        self.fail("!!DOES NOT TEST EVERYTHING!! Multiple advices in a group with the same position= request should be sorted by creation, with the newest winning")
+    def test_equal_symbolic_positions_sort_by_creation(self):
+        @pydvice.before(self.identity, position='first')
+        def firstA(*a, **k):
+            self.runs.append('firstA')
+
+        @pydvice.before(self.identity, position='first')
+        def firstB(*a, **k):
+            self.runs.append('firstB')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad1')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad2')
+
+        self.assertTrue(self.identity(self) is self,
+                        "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[0:2], ['firstB', 'firstA'],
+                         "The first two advices should be the two declared first, last declared first, was: %s" % self.runs)
 
 class UsecaseTests(Boilerplate, unittest.TestCase):
     def setUp(self):
