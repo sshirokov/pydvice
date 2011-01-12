@@ -117,7 +117,7 @@ class PositionTests(Boilerplate, unittest.TestCase):
                          "Even despite the overwhelming amount of advice, identity should function")
         self.assertEqual(self.runs[0], 'first',
                          "Advice with position='first' should run first, was: %s" % self.runs)
-        self.assertEqual(self.runs[0], 'last',
+        self.assertEqual(self.runs[-1], 'last',
                          "Advice with position='first' should run first, was: %s" % self.runs)
         self.assertTrue(len(self.runs[1:-1]),
                         "More advice than just first and last should run, runs: %s" % self.runs)
@@ -133,11 +133,59 @@ class PositionTests(Boilerplate, unittest.TestCase):
 
         self.assertTrue(self.identity(self) is self,
                         "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[self.runs.index('c') + 1], 'after_c',
+                         "after_c advice is not running after c, runs: %s" % self.runs)
+        self.assertEqual(self.runs[self.runs.index('b') - 1], 'before_b',
+                         "before_b advice is not running before b, runs: %s" % self.runs)
 
-        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify a relative position for my advice with the option: position={'before'|'after': other_advice_fun}")
+    def test_advice_absolute_position_clamps(self):
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad1')
+
+        @pydvice.before(self.identity, position=999)
+        def forever(*a, **k):
+            self.runs.append('999')
+
+        @pydvice.before(self.identity, position=-100)
+        def minus_forever(*a, **k):
+            self.runs.append('-100')
+
+        @pydvice.before(self.identity)
+        def pad2(*a, **k):
+            self.runs.append('pad2')
+
+        self.assertTrue(self.identity(self) is self,
+                         "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[0], '-100',
+                         "Advice with position=N<0 should run first, was: %s" % self.runs)
+        self.assertEqual(self.runs[-1], '999',
+                         "Advice with position=N>max' should run last, was: %s" % self.runs)
+        self.assertTrue(len(self.runs[1:-1]),
+                        "More advice than just first and last should run, runs: %s" % self.runs)
+
 
     def test_advice_absolute_positions(self):
-        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify an absolute position for my advice with the option: position=N where N is a zero-based list index, clamped at beginning and end")
+        @pydvice.before(self.identity, position=3)
+        def third(*a, **k):
+            self.runs.append('third')
+
+        @pydvice.before(self.identity, position=2)
+        def second(*a, **k):
+            self.runs.append('second')
+
+        @pydvice.before(self.identity, position=4)
+        def fourth(*a, **k):
+            self.runs.append('fourth')
+
+        self.assertTrue(self.identity(self) is self,
+                        "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs.index('third'), 3,
+                         "third advice should be positioned at 3, runs: %s" % self.runs)
+        self.assertEqual(self.runs.index('second'), 2,
+                         "second advice should be positioned at 2, runs: %s" % self.runs)
+        self.assertEqual(self.runs.index('fourth'), 4,
+                         "fourth advice should be positioned at 4, runs: %s" % self.runs)
 
     def test_equal_declared_positions_sort_by_creation(self):
         self.fail("!!DOES NOT TEST EVERYTHING!! Multiple advices in a group with the same position= request should be sorted by creation, with the newest winning")
