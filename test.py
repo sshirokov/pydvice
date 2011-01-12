@@ -68,7 +68,7 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         from pydvice import PydviceError
         self.assertRaises(PydviceError, pydvice)
 
-class SanityChecks(Boilerplate, unittest.TestCase):
+class PositionTests(Boilerplate, unittest.TestCase):
     def test_advice_relative_positions(self):
         runs = []
 
