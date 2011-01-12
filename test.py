@@ -99,14 +99,17 @@ class PositionTests(Boilerplate, unittest.TestCase):
         def d(*a, **k):
             runs.append('d')
 
+        self.assertTrue(self.identity(self) is self,
+                         "Even despite the overwhelming amount of advice, identity should function")
 
-        self.fail("I should be able to specify a relative position for my advice with the option: position='first'|'last'|{'before'|'after': other_advice_fun}")
+
+        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify a relative position for my advice with the option: position='first'|'last'|{'before'|'after': other_advice_fun}")
 
     def test_advice_absolute_positions(self):
-        self.fail("I should be able to specify an absolute position for my advice with the option: position=N where N is a zero-based list index, clamped at beginning and end")
+        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify an absolute position for my advice with the option: position=N where N is a zero-based list index, clamped at beginning and end")
 
     def test_equal_declared_positions_sort_by_creation(self):
-        self.fail("Multiple advices in a group with the same position= request should be sorted by creation, with the newest winning")
+        self.fail("!!DOES NOT TEST EVERYTHING!! Multiple advices in a group with the same position= request should be sorted by creation, with the newest winning")
 
 class UsecaseTests(Boilerplate, unittest.TestCase):
     def setUp(self):
