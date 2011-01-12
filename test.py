@@ -69,35 +69,49 @@ class SanityChecks(Boilerplate, unittest.TestCase):
         self.assertRaises(PydviceError, pydvice)
 
 class PositionTests(Boilerplate, unittest.TestCase):
-    def test_advice_relative_positions(self):
-        runs = []
+    def setUp(self):
+        super(PositionTests, self).setUp()
+        self.runs = []
 
-        #Advices a->d serve as padding to ensure the first and last slots will be very well occupied
+        @self.attach
         @pydvice.before(self.identity)
         def a(*a, **k):
-            runs.append('a')
+            self.runs.append('a')
 
+        @self.attach
         @pydvice.before(self.identity)
         def b(*a, **k):
-            runs.append('b')
+            self.runs.append('b')
+
+        @self.attach
+        @pydvice.before(self.identity)
+        def c(*a, **k):
+            self.runs.append('c')
+
+        @self.attach
+        @pydvice.before(self.identity)
+        def d(*a, **k):
+            self.runs.append('d')
+
+
+    def test_advice_relative_positions(self):
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad1')
 
         #Positional advice
         @pydvice.before(self.identity, position='first')
         def first(*a, **k):
-            runs.append('first')
+            self.runs.append('first')
 
         @pydvice.before(self.identity, position='last')
         def first(*a, **k):
-            runs.append('first')
-
-        #And back to padding
-        @pydvice.before(self.identity)
-        def c(*a, **k):
-            runs.append('c')
+            self.runs.append('first')
 
         @pydvice.before(self.identity)
-        def d(*a, **k):
-            runs.append('d')
+        def pad2(*a, **k):
+            self.runs.append('pad2')
+
 
         self.assertTrue(self.identity(self) is self,
                          "Even despite the overwhelming amount of advice, identity should function")
