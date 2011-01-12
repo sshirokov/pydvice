@@ -37,9 +37,13 @@ class pydvice(object):
         return advice
 
     @classmethod
-    def _register(cls, fun, advice):
+    def sort_fun_advice(cls, ad_list):
         sort_k = {'key': lambda a: a.key, 'reverse': True}
-        sorted_ads, ads = (lambda al: (sorted(al, **sort_k), al))(
+        return sorted(ad_list, **sort_k)
+
+    @classmethod
+    def _register(cls, fun, advice):
+        sorted_ads, ads = (lambda al: (cls.sort_fun_advice(al), al))(
             cls.advised.get(fun, []) + [advice.bind()]
         )
 
