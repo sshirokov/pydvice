@@ -187,6 +187,28 @@ class PositionTests(Boilerplate, unittest.TestCase):
         self.assertEqual(self.runs.index('fourth'), 4,
                          "fourth advice should be positioned at 4, runs: %s" % self.runs)
 
+    def test_equal_absolute_positions_sort_by_creation(self):
+        @pydvice.before(self.identity, position=0)
+        def firstA(*a, **k):
+            self.runs.append('firstA')
+
+        @pydvice.before(self.identity, position=0)
+        def firstB(*a, **k):
+            self.runs.append('firstB')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad1')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad2')
+
+        self.assertTrue(self.identity(self) is self,
+                        "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[0:2], ['firstB', 'firstA'],
+                         "The first two advices should be the two declared first, last declared 0, was: %s" % self.runs)
+
     def test_equal_symbolic_positions_sort_by_creation(self):
         @pydvice.before(self.identity, position='first')
         def firstA(*a, **k):
@@ -208,6 +230,28 @@ class PositionTests(Boilerplate, unittest.TestCase):
                         "Even despite the overwhelming amount of advice, identity should function")
         self.assertEqual(self.runs[0:2], ['firstB', 'firstA'],
                          "The first two advices should be the two declared first, last declared first, was: %s" % self.runs)
+
+    def test_equal_relative_positions_sort_by_creation(self):
+        @pydvice.before(self.identity, position={'before': self.c})
+        def before1(*a, **k):
+            self.runs.append('before1')
+
+        @pydvice.before(self.identity, position={'before': self.c})
+        def before2(*a, **k):
+            self.runs.append('before2')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad1')
+
+        @pydvice.before(self.identity)
+        def pad1(*a, **k):
+            self.runs.append('pad2')
+
+        self.assertTrue(self.identity(self) is self,
+                        "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[self.runs.index('c') - 2:self.runs.index('c')], ['before2', 'before1'],
+                         "The two advices before c should be the two declared before: c, last declared first, was: %s" % self.runs)
 
 class UsecaseTests(Boilerplate, unittest.TestCase):
     def setUp(self):
