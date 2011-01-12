@@ -94,7 +94,7 @@ class PositionTests(Boilerplate, unittest.TestCase):
             self.runs.append('d')
 
 
-    def test_advice_relative_positions(self):
+    def test_advice_symbolic_positions(self):
         @pydvice.before(self.identity)
         def pad1(*a, **k):
             self.runs.append('pad1')
@@ -115,9 +115,15 @@ class PositionTests(Boilerplate, unittest.TestCase):
 
         self.assertTrue(self.identity(self) is self,
                          "Even despite the overwhelming amount of advice, identity should function")
+        self.assertEqual(self.runs[0], 'first',
+                         "Advice with position='first' should run first")
+        self.assertEqual(self.runs[0], 'last',
+                         "Advice with position='first' should run first")
+        self.assertTrue(len(self.runs[1:-1]),
+                        "More advice than just first and last should run")
 
-
-        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify a relative position for my advice with the option: position='first'|'last'|{'before'|'after': other_advice_fun}")
+    def test_advice_relative_positions(self):
+        self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify a relative position for my advice with the option: position={'before'|'after': other_advice_fun}")
 
     def test_advice_absolute_positions(self):
         self.fail("!!DOES NOT TEST EVERYTHING!! I should be able to specify an absolute position for my advice with the option: position=N where N is a zero-based list index, clamped at beginning and end")
