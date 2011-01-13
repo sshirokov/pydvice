@@ -105,7 +105,7 @@ class PositionTests(Boilerplate, unittest.TestCase):
             self.runs.append('first')
 
         @pydvice.before(self.identity, position='last')
-        def first(*a, **k):
+        def last(*a, **k):
             self.runs.append('last')
 
         @pydvice.before(self.identity)

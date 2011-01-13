@@ -2,6 +2,10 @@ import uuid
 import types
 import functools
 
+def ranged(Min, Max, v):
+    return {v < Min: Min,
+            v > Max: Max}.get(True, v)
+
 class with_attrs(object):
     '''
     Decorator to set function attributes
@@ -38,8 +42,25 @@ class pydvice(object):
 
     @classmethod
     def sort_fun_advice(cls, ad_list):
+        def consider_position(it, ad):
+            pos = ad.options.get('position', None)
+            if not (isinstance(pos, types.DictType) or pos is None):
+                print
+                print [a.advice and a.advice.__name__ for a in it]
+                print "Pre:", pos
+                pos = ranged(0, len(it), {'first': 0,
+                                          'last': len(it)}.get(pos, pos))
+                print "Pos:", pos
+                it.insert(pos, None)
+                it.remove(ad)
+                it.insert(pos, ad)
+                it.remove(None)
+                print [a.advice and a.advice.__name__ for a in it]
+            return it
+
         sort_k = {'key': lambda a: a.key, 'reverse': True}
-        return sorted(ad_list, **sort_k)
+        return reduce(consider_position,
+                      *(lambda l: (l, l))(sorted(ad_list, **sort_k)))
 
     @classmethod
     def _register(cls, fun, advice):
