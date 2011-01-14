@@ -2,6 +2,12 @@ import uuid
 import types
 import functools
 
+def make_consuming_chain(*functions, **kwargs):
+    '''
+    Return a function that will call functions in sequence, passing the return down the chain of functions
+    '''
+    return reduce(lambda acc, f: lambda *args, **kwargs: f(acc(*args, **kwargs)), functions)
+
 def ranged(Min, Max, v):
     return {v < Min: Min,
             v > Max: Max}.get(True, v)
@@ -58,9 +64,12 @@ class pydvice(object):
                 print [a.advice and a.advice.__name__ for a in it]
             return it
 
-        sort_k = {'key': lambda a: a.key, 'reverse': True}
-        return reduce(consider_position,
-                      *(lambda l: (l, l))(sorted(ad_list, **sort_k)))
+        sort_k = {'key': lambda a: a.key}
+        return make_consuming_chain(
+            lambda al: reduce(consider_position,
+                      *(lambda l: (l, l))(sorted(al, **sort_k))),
+            lambda al: reversed(al),
+            list)(ad_list)
 
     @classmethod
     def _register(cls, fun, advice):
