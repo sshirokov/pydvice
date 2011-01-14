@@ -64,10 +64,9 @@ class pydvice(object):
                 print [a.advice and a.advice.__name__ for a in it]
             return it
 
-        sort_k = {'key': lambda a: a.key}
         return make_consuming_chain(
-            lambda al: reduce(consider_position,
-                      *(lambda l: (l, l))(sorted(al, **sort_k))),
+            lambda al: sorted(al, key = lambda a: a.key),
+            lambda al: reduce(consider_position, al, al),
             lambda al: reversed(al),
             list)(ad_list)
 
