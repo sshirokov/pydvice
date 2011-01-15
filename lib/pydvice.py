@@ -49,7 +49,7 @@ class pydvice(object):
     @classmethod
     def sort_fun_advice(cls, ad_list):
         def consider_position(it, ad):
-            pos = ad.options.get('position', None)
+            pos = ad.options['position']
             if not (isinstance(pos, types.DictType) or pos is None):
                 print
                 print [a.advice and a.advice.__name__ for a in it]
@@ -57,17 +57,18 @@ class pydvice(object):
                 pos = ranged(0, len(it), {'first': 0,
                                           'last': len(it)}.get(pos, pos))
                 print "Pos:", pos
-                it.insert(pos, None)
-                it.remove(ad)
                 it.insert(pos, ad)
-                it.remove(None)
                 print [a.advice and a.advice.__name__ for a in it]
             return it
 
         return make_consuming_chain(
-            lambda al: sorted(al, key = lambda a: a.key),
-            lambda al: reduce(consider_position, al, al),
-            lambda al: reversed(al),
+            lambda al:          ([a for a in al if not a.options.has_key('position')],
+                                 [a for a in al if a.options.has_key('position')]),
+            lambda al_pal: (lambda al, pal:
+                                (sorted(al, key = lambda a: a.key), pal))(*al_pal),
+            lambda al_pal: (lambda al, pal:
+                                reduce(consider_position, pal, al))(*al_pal),
+            lambda al:          reversed(al),
             list)(ad_list)
 
     @classmethod
