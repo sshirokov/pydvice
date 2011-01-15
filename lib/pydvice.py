@@ -60,16 +60,33 @@ class pydvice(object):
                 it.insert(pos, ad)
                 print [a.advice and a.advice.__name__ for a in it]
             return it
+        
+        def typekey(a):
+            return {
+                isinstance(a.options['position'], types.DictType): 1,
+                isinstance(a.options['position'], types.StringTypes): 0
+            }.get(True, 3)
+
+        def sortkey(a):
+            return {
+                isinstance(a.options['position'], types.IntType): a.options['position']
+            }.get(True, 'z%s' % a.index)
+                    
+            
 
         return make_consuming_chain(
             lambda al:          ([a for a in al if not a.options.has_key('position')],
                                  [a for a in al if a.options.has_key('position')]),
             lambda al_pal: (lambda al, pal:
-                                (sorted(al, key = lambda a: a.key), pal))(*al_pal),
+                                (sorted(al, key = lambda a: a.key), 
+                                 sorted(pal, key = lambda a: (a._meta.get('priority', None),
+                                                              typekey(a), 
+                                                              sortkey(a)))))(*al_pal),
             lambda al_pal: (lambda al, pal:
                                 reduce(consider_position, pal, al))(*al_pal),
             lambda al:          reversed(al),
-            list)(ad_list)
+                                list
+        )(ad_list)
 
     @classmethod
     def _register(cls, fun, advice):
