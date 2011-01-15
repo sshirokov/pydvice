@@ -50,9 +50,6 @@ class pydvice(object):
     def sort_fun_advice(cls, ad_list):
         def consider_position(it, ad):
             pos = ad.options['position']
-            print
-            print [a.advice and a.advice.__name__ for a in it]
-            print "Pre:", pos
             if isinstance(pos, types.DictType):
                 where, what = pos.items().pop()
                 pos = {
@@ -61,9 +58,7 @@ class pydvice(object):
                 }[where]
             pos = ranged(0, len(it), {'first': 0,
                                       'last': len(it)}.get(pos, pos))
-            print "Pos:", pos
             it.insert(pos, ad)
-            print [a.advice and a.advice.__name__ for a in it]
             return it
         
         def typekey(a):

@@ -250,8 +250,8 @@ class PositionTests(Boilerplate, unittest.TestCase):
 
         self.assertTrue(self.identity(self) is self,
                         "Even despite the overwhelming amount of advice, identity should function")
-        self.assertEqual(self.runs[self.runs.index('c') - 2:self.runs.index('c')], ['before2', 'before1'],
-                         "The two advices before c should be the two declared before: c, last declared first, was: %s" % self.runs)
+        self.assertEqual(self.runs[self.runs.index('c') - 2:self.runs.index('c')], ['before1', 'before2'],
+                         "The two advices before c should be the two declared {before: c}, last declared closer to c, was: %s" % self.runs)
 
 class UsecaseTests(Boilerplate, unittest.TestCase):
     def setUp(self):
