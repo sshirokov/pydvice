@@ -331,6 +331,14 @@ class AroundTests(Boilerplate, unittest.TestCase):
         self.assertTrue(pydvice.around,
                         "pydvice.around should probably exist.")
 
+    def test_around_can_modify_arguments(self):
+        @pydvice.around(self.identity)
+        def replace_with_string(doit, result, **ak):
+            doit(args=("HELLO",))
+
+        self.assertEqual(self.identity(self), "HELLO",
+                         "Around advice should be able to modify the parameters")
+
     def test_even_with_multiple_around_inner_should_run_once(self):
         trace = {'first': False, 'second': False}
         runs = []
