@@ -292,7 +292,8 @@ class Around(BaseAdvice):
         def result(new_result=None):
             if new_result is not None: result.value = new_result
             return result.value
-        def doit(): result(self.fun(*args, **kwargs))
+        def doit(args=args, kwargs=kwargs):
+            result(self.fun(*args, **kwargs))
 
         return result(self.advice(doit, result, args=args, kwargs=kwargs))
 
