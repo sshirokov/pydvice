@@ -127,7 +127,7 @@ class PositionTests(Boilerplate, unittest.TestCase):
         def after_c(*a, **k):
             self.runs.append('after_c')
 
-        @pydvice.before(self.identity, position={'after': self.b})
+        @pydvice.before(self.identity, position={'before': self.b})
         def before_b(*a, **k):
             self.runs.append('before_b')
 
