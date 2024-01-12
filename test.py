@@ -490,7 +490,7 @@ class BeforeTests(Boilerplate, unittest.TestCase):
         def make_it_cake_instead(o):
             return "I want cake %s" % (o)
 
-        self.assertTrue(isinstance(self.identity(self), types.StringTypes),
+        self.assertTrue(isinstance(self.identity(self), (str,)),
                         "Identity should sudently find itself retruning strings.")
         self.assertTrue(self.identity(self).startswith("I want cake"),
                         "Identity should begin to exclaim it's hungry")

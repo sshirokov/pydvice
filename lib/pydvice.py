@@ -1,6 +1,7 @@
 import uuid
 import types
 import functools
+from functools import reduce
 
 def make_consuming_chain(*functions, **kwargs):
     '''
@@ -20,7 +21,7 @@ class with_attrs(object):
         self.options = kwargs;
 
     def __call__(self, f):
-        [setattr(f, opt, val) for (opt, val) in self.options.items()]
+        [setattr(f, opt, val) for (opt, val) in list(self.options.items())]
         return f
 
 class PydviceError(Exception): pass
@@ -50,8 +51,8 @@ class pydvice(object):
     def sort_fun_advice(cls, ad_list):
         def consider_position(it, ad):
             pos = ad.options['position']
-            if isinstance(pos, types.DictType):
-                where, what = pos.items().pop()
+            if isinstance(pos, dict):
+                where, what = list(pos.items()).pop()
                 pos = {
                     'before': it.index(what.advice),
                     'after': it.index(what.advice) + 1
@@ -63,20 +64,20 @@ class pydvice(object):
         
         def typekey(a):
             return {
-                isinstance(a.options['position'], types.DictType): 1,
-                isinstance(a.options['position'], types.StringTypes): 0
+                isinstance(a.options['position'], dict): 1,
+                isinstance(a.options['position'], (str,)): 0
             }.get(True, 3)
 
         def sortkey(a):
             return {
-                isinstance(a.options['position'], types.IntType): a.options['position']
+                isinstance(a.options['position'], int): a.options['position']
             }.get(True, 'z%s' % a.index)
                     
             
 
         return make_consuming_chain(
-            lambda al:          ([a for a in al if not a.options.has_key('position')],
-                                 [a for a in al if a.options.has_key('position')]),
+            lambda al:          ([a for a in al if 'position' not in a.options],
+                                 [a for a in al if 'position' in a.options]),
             lambda al_pal: (lambda al, pal:
                                 (sorted(al, key = lambda a: a.key), 
                                  sorted(pal, key = lambda a: (a._meta.get('priority', None),
@@ -107,13 +108,13 @@ class pydvice(object):
     def reset(cls):
         cls.deactivate_all()
         [[a.unbind() for a in reversed(advice)]
-         for fun, advice in cls.advised.items()]
+         for fun, advice in list(cls.advised.items())]
         cls.advised = {}
 
     @classmethod
     def deactivate_all(cls):
         [advice.deactivate()
-         for funlists in cls.advised.values()
+         for funlists in list(cls.advised.values())
          for advice in funlists]
 
 class BaseAdvice(object):
@@ -149,13 +150,13 @@ class BaseAdvice(object):
 
 
     def init_fun(self, fun):
-        fun = fun if isinstance(fun, types.FunctionType) else fun.im_func
+        fun = fun if isinstance(fun, types.FunctionType) else fun.__func__
         self.fun_ref = fun
-        self.fun = types.FunctionType(fun.func_code,
-                                      fun.func_globals,
+        self.fun = types.FunctionType(fun.__code__,
+                                      fun.__globals__,
                                       fun.__name__,
-                                      fun.func_defaults,
-                                      fun.func_closure)
+                                      fun.__defaults__,
+                                      fun.__closure__)
         return fun
 
 
@@ -182,12 +183,12 @@ class BaseAdvice(object):
         while not call_expr['bound']:
             caller = eval(compile(call_expr['expr'].format(**call_expr),
                                   '<pydvice.%s>' % self.position, 'eval'))
-            try: self.fun_ref.func_code = types.FunctionType(caller.func_code,
-                                                             self.fun_ref.func_globals,
+            try: self.fun_ref.__code__ = types.FunctionType(caller.__code__,
+                                                             self.fun_ref.__globals__,
                                                              self.fun_ref.__name__,
-                                                             self.fun_ref.func_defaults,
-                                                             self.fun_ref.func_closure).func_code
-            except ValueError, e:
+                                                             self.fun_ref.__defaults__,
+                                                             self.fun_ref.__closure__).__code__
+            except ValueError as e:
                 if 'closure of length' not in str(e): raise
 
                 call_expr['freevars'].append('__%s' % uuid.uuid4().hex)
@@ -200,12 +201,12 @@ class BaseAdvice(object):
                 )
             else:
                 call_expr['bound'] = True
-        self.fun_ref.func_globals.update(**{self.shadow_name: self})
+        self.fun_ref.__globals__.update(**{self.shadow_name: self})
         return self
 
     def unbind(self):
-        self.fun_ref.func_code = self.fun.func_code
-        self.fun_ref.func_globals.pop(self.shadow_name, None)
+        self.fun_ref.__code__ = self.fun.__code__
+        self.fun_ref.__globals__.pop(self.shadow_name, None)
         return self
 
     def deactivate(self):
@@ -238,7 +239,7 @@ class Before(BaseAdvice):
         maybe_args = self.advice(*args, **kwargs)
 
         if maybe_args is not None:
-            maybe_args = maybe_args if isinstance(maybe_args, types.TupleType) else (maybe_args,)
+            maybe_args = maybe_args if isinstance(maybe_args, tuple) else (maybe_args,)
 
             try:
                 args, kwargs = {1: (maybe_args, kwargs),
